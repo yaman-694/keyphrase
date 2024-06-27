@@ -10,7 +10,7 @@ export default function ExtractKey() {
   const [loadingState, setLoading] = useState({
     fileLoading: false,
   });
-  const [keyPhrases, setKeyPhrases] = useState<string[] | null>(null);
+  const [keyPhrases, setKeyPhrases] = useState<string[] | string | null>(null);
   const [text, setText] = useState<string | null>(null);
   const [fileUploaded, setFileUploaded] = useState<{
     name: string | null;
@@ -89,25 +89,28 @@ export default function ExtractKey() {
         </Button>
       </div>
 
-      {text && (
-        <div className="flex flex-col gap-2 my-10">
-          <h2 className="text-2xl font-bold">Your document text</h2>
-          <div className="border-sky-200 border bg-gradient-to-bl from-sky-50 p-10 rounded-md shadow-sm">
-            <Text text={text} setKeyPhrases={setKeyPhrases} />
-          </div>
+      <div className="flex flex-col gap-2 my-10">
+        <h2 className="text-2xl font-bold">Add text or document</h2>
+        <div className="border-sky-200 border bg-gradient-to-bl from-sky-50 p-10 rounded-md shadow-sm">
+          <Text text={text ?? ""} setKeyPhrases={setKeyPhrases} />
         </div>
-      )}
+      </div>
 
       {keyPhrases && (
         <div className="flex flex-col gap-2 my-10">
           <h2 className="text-2xl font-bold">Key Phrases</h2>
           <div className="border-sky-200 w-1/2 border bg-gradient-to-bl grid grid-cols-1 gap-1 from-sky-50 p-10 rounded-md shadow-sm">
-            {keyPhrases.map((phrase, index) => (
-              <span key={index} className="text-base self-start bg-white rounded-md shadow-sm hover:shadow-lg transition-all flex items-center gap-1 p-1">
-                <span>{index + 1}.</span>
-                <span>{phrase.trim()}</span>
-              </span>
-            ))}
+            {typeof keyPhrases === "string"
+              ? keyPhrases
+              : keyPhrases.map((phrase, index) => (
+                  <span
+                    key={index}
+                    className="text-base self-start bg-white rounded-md shadow-sm hover:shadow-lg transition-all flex items-center gap-1 p-1"
+                  >
+                    <span>{index + 1}.</span>
+                    <span>{phrase.trim()}</span>
+                  </span>
+                ))}
           </div>
         </div>
       )}

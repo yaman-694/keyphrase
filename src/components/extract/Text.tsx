@@ -21,6 +21,7 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import Loader from "./Loader";
 import { Dispatch, SetStateAction, useState } from "react";
 import { axiosClient } from "@/lib/axios";
+import formatTextToList from "@/utils/extractPhrase";
 
 const FormSchema = z.object({
   research_paper_text: z.string().min(100, {
@@ -34,7 +35,7 @@ export function Text({
   setKeyPhrases,
 }: {
   text: string;
-  setKeyPhrases: Dispatch<SetStateAction<string[] | null>>;
+  setKeyPhrases: Dispatch<SetStateAction<string[] | string | null>>;
 }) {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -45,12 +46,13 @@ export function Text({
   });
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
+    console.log(data)
     try {
       const response = await axiosClient.post(
-        "/process?maxKeyPhrase=" + data.numberOfKeyPhrase,
-        data.research_paper_text
+        "/process?number_of_key_phrases=" + data.numberOfKeyPhrase,
+        { text: data.research_paper_text }
       );
-      setKeyPhrases(response.data.data);
+      setKeyPhrases(formatTextToList(response.data.data));
       toast({
         title: "Success",
         description: "Successfully extracted key phrases",
@@ -62,14 +64,6 @@ export function Text({
         variant: "destructive",
       });
     }
-    toast({
-      title: "You submitted the following values:",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    });
   }
 
   return (
