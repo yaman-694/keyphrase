@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -17,27 +17,51 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 import { Label } from "../ui/label";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import Loader from "./Loader";
+import { Dispatch, SetStateAction, useState } from "react";
+import { axiosClient } from "@/lib/axios";
 
 const FormSchema = z.object({
-  research_paper_text: z
-    .string()
-    .min(10, {
-      message: "Bio must be at least 10 characters.",
-    })
-    .max(10000, {
-      message: "Bio must not be longer than 30 characters.",
-    }),
+  research_paper_text: z.string().min(100, {
+    message: "Bio must be at least 100 characters.",
+  }),
+  numberOfKeyPhrase: z.string(),
 });
 
-export function Text({ text }: { text: string }) {
+export function Text({
+  text,
+  setKeyPhrases,
+}: {
+  text: string;
+  setKeyPhrases: Dispatch<SetStateAction<string[] | null>>;
+}) {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       research_paper_text: text,
+      numberOfKeyPhrase: "5",
     },
   });
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {
+  async function onSubmit(data: z.infer<typeof FormSchema>) {
+    try {
+      const response = await axiosClient.post(
+        "/process?maxKeyPhrase=" + data.numberOfKeyPhrase,
+        data.research_paper_text
+      );
+      setKeyPhrases(response.data.data);
+      toast({
+        title: "Success",
+        description: "Successfully extracted key phrases",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An error occured while extracting key phrases",
+        variant: "destructive",
+      });
+    }
     toast({
       title: "You submitted the following values:",
       description: (
@@ -68,12 +92,57 @@ export function Text({ text }: { text: string }) {
               </FormItem>
             )}
           />
-          <Button type="submit">Submit</Button>
+          <FormField
+            control={form.control}
+            name="numberOfKeyPhrase"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormLabel>Number of key phrases</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="flex flex-col space-y-1"
+                  >
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="5" />
+                      </FormControl>
+                      <FormLabel className="font-normal">5</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="10" />
+                      </FormControl>
+                      <FormLabel className="font-normal">10</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="15" />
+                      </FormControl>
+                      <FormLabel className="font-normal">15</FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit" disabled={form.formState.isSubmitting}>
+            {form.formState.isSubmitting ? (
+              <span className="flex items-center gap-1">
+                <Loader />
+                Hang Tight! Extracting KeyPhrases...
+              </span>
+            ) : (
+              "Unveil KeyPhrases"
+            )}
+          </Button>
         </form>
       </Form>
       <div>
         <Label>Preview Text</Label>
-        <p className="max-h-96 overflow-y-auto"> {text}</p>
+        <p className="max-h-[400px] overflow-y-scroll"> {text}</p>
       </div>
     </div>
   );

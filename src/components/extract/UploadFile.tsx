@@ -72,7 +72,7 @@ const UploadFile = ({
     <div
       {...getRootProps()}
       className={cn(
-        `cursor-pointer items-center justify-center rounded-lg border border-dashed border-zinc-400 bg-zinc-50 p-36 text-center text-lg font-medium text-zinc-400 max-md:px-5 ${
+        `cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-sky-200 bg-gradient-to-bl from-sky-50 p-36 text-center text-lg font-medium text-zinc-400 max-md:px-5 ${
           isDragActive ? "bg-slate-200" : ""
         }`,
         className?.parentDivStyle
