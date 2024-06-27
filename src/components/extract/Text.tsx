@@ -19,9 +19,8 @@ import { toast } from "@/components/ui/use-toast";
 import { Label } from "../ui/label";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import Loader from "./Loader";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useEffect } from "react";
 import { axiosClient } from "@/lib/axios";
-import formatTextToList from "@/utils/extractPhrase";
 
 const FormSchema = z.object({
   research_paper_text: z.string().min(100, {
@@ -41,18 +40,17 @@ export function Text({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       research_paper_text: text,
-      numberOfKeyPhrase: "5",
+      numberOfKeyPhrase: "2",
     },
   });
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
-    console.log(data)
     try {
       const response = await axiosClient.post(
         "/process?number_of_key_phrases=" + data.numberOfKeyPhrase,
         { text: data.research_paper_text }
       );
-      setKeyPhrases(formatTextToList(response.data.data));
+      setKeyPhrases(response.data.data);
       toast({
         title: "Success",
         description: "Successfully extracted key phrases",
@@ -66,6 +64,12 @@ export function Text({
     }
   }
 
+  useEffect(() => {
+    form.reset({
+      research_paper_text: text,
+      numberOfKeyPhrase: "2",
+    });
+  }, [text, form]);
   return (
     <div className="grid grid-cols-2 gap-6">
       <Form {...form}>
@@ -100,21 +104,21 @@ export function Text({
                   >
                     <FormItem className="flex items-center space-x-3 space-y-0">
                       <FormControl>
+                        <RadioGroupItem value="2" />
+                      </FormControl>
+                      <FormLabel className="font-normal">2</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="3" />
+                      </FormControl>
+                      <FormLabel className="font-normal">3</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
                         <RadioGroupItem value="5" />
                       </FormControl>
                       <FormLabel className="font-normal">5</FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="10" />
-                      </FormControl>
-                      <FormLabel className="font-normal">10</FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="15" />
-                      </FormControl>
-                      <FormLabel className="font-normal">15</FormLabel>
                     </FormItem>
                   </RadioGroup>
                 </FormControl>
